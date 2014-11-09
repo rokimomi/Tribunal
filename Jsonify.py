@@ -6,7 +6,6 @@ from bs4 import BeautifulSoup as bs
 import re
 import json
 import glob
-
 # 6030355 SHOWS A "DID NOT LOAD CORRECTLY" MESSAGE FOR GAMES 2 and 3
 
 data = {"tribunal":[]}
@@ -15,16 +14,33 @@ data = {"tribunal":[]}
 
 files_list = glob.glob('./cases/*.html')
 
+num_files = len(files_list)
+current_file_num = 0
+num_files_thrown = 0
+
+
+# !!! DELETE LATER
+#num_files = 500
+
+
 for file in files_list:
+
+    #if current_file_num == num_files:
+    #    break
+
+    current_file_num += 1
+
+    print str(current_file_num) + ' / ' + str(num_files) + ' (%.2f' % (current_file_num/float(num_files)*100) + '%)'
 
     print file[8:]
 
     # open case file
     case_file = file
     html = open(case_file, "r")
-    soup = bs(html)
 
     try:
+
+        soup = bs(html)
 
         caseNum = soup.find_all("span", class_=re.compile('raw-case-number'))[0].contents[0]
 
@@ -59,12 +75,20 @@ for file in files_list:
         # add this case to larger json
         data["tribunal"].append(case)
 
-    except IndexError:
+    except IndexError, e:
         print "IndexError: case " + caseNum + ". Throwing case out..."
+        num_files_thrown += 1
+    except UnicodeDecodeError, e:
+        print "UnicodeDecodeError: case " + caseNum + ". Throwing case out..."
+        num_files_thrown += 1
 
 # save data
 with open('./json/data.json', 'w') as outfile:
     json.dump(data, outfile)
+
+print 'Processed ' + str(num_files) + 'total cases.'
+print str(num_files_thrown) + ' cases thrown out ('+ str((num_files_thrown/float(num_files)*100)) +'%)'
+print str(num_files - num_files_thrown) + ' remaining (' + str(((num_files-num_files_thrown)/float(num_files)*100)) + '%)'
 
 """
 http://www.jsoneditoronline.org/

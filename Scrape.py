@@ -8,6 +8,8 @@ import os.path as path
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 from PyQt4.QtWebKit import *
+from datetime import datetime
+
 
 class Render(QWebPage, QApplication):
   def __init__(self, url, app):
@@ -23,10 +25,16 @@ class Render(QWebPage, QApplication):
 
 ########################################################################
 
-# Grabs 100 tribunal cases starting from 6030454 going down
+# Grabs tribunal cases starting from 6030454 going down
 
-startingCase = 6030454
-caseCount = 100
+startTime = datetime.now()
+
+num_concurrent = 1 # number of concurrently running scripts
+offset = 0 # how much to offset the scripts by when running concurrent scrapes
+
+
+startingCase = 6030454 - offset
+caseCount = 10000
 
 # override issues with qt warnings stopping the code
 qInstallMsgHandler(None)
@@ -56,11 +64,18 @@ for i in range(0, caseCount):
 
         percent = (i+1)/float(caseCount)*100
 
-        print 'done | '+str(i+1)+'/'+str(caseCount)+' ('+str(percent)+'%)'
+        timestamp = ""
 
-    startingCase -= 1
+        if((i+1) % 10 == 0):
+         timestamp = datetime.now()-startTime
+
+        print 'done | '+str(i+1)+'/'+str(caseCount)+' ('+str(percent)+'%) ' + str(timestamp)
+
+    startingCase -= (num_concurrent)
 
 print 'Done!'
+
+print(datetime.now()-startTime)
 
 
 
