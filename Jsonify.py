@@ -39,7 +39,7 @@ for file in files_list:
     #if current_file_num == num_files:
     #    break
 
-    if current_file_num % 25 == 0:
+    if current_file_num % 1000 == 0:
         all_objects = muppy.get_objects()
         sum1 = summary.summarize(all_objects)
         summary.print_(sum1)
