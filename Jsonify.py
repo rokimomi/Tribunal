@@ -16,14 +16,13 @@ all_objects = muppy.get_objects()
 sum1 = summary.summarize(all_objects)
 summary.print_(sum1)
 
-
 # 6030355 SHOWS A "DID NOT LOAD CORRECTLY" MESSAGE FOR GAMES 2 and 3
 
 data = {"tribunal":[]}
 
 ##
 
-files_list = glob.glob('./cases/*.html')
+files_list = glob.glob('./cases-10/*.html')
 
 num_files = len(files_list)
 current_file_num = 0
@@ -75,8 +74,6 @@ for file in files_list:
 
         # cycle through the games this player was reported in
 
-
-
         for i in range(1, int(games)+1):
 
             game = games_div.find_all("div", id=re.compile('game'+str(i)))[0].extract()
@@ -86,7 +83,30 @@ for file in files_list:
             gameLength = game.find_all("p", id=re.compile('stat-length-fill'))[0].contents[0].extract()
             outcome = game.find_all("p", id=re.compile('stat-outcome-fill'))[0].contents[0].extract()
 
-            recentGames.append({"gameType": gameType, "gameLength": gameLength, "outcome": outcome})
+            # report comments
+            # have only ever seen one comment here, run some kind of test to find a page with multiple reports and multiple comments
+
+            # chat
+            chat_log = []
+
+            chat = game.find_all("tr", class_=re.compile('alliesFilter|enemiesFilter'))
+
+            for line in chat:
+
+                chat_type = 'ally'
+                chat_class_list = line.get('class')
+                if 'enemy' in chat_class_list:
+                    chat_type = 'enemy'
+                elif 'reported-player' in chat_class_list:
+                    chat_type = 'reported-player'
+
+                chat_user = line.find_all("td", class_=re.compile('chat-user'))[0].contents[0].extract()
+                chat_timestamp = line.find_all("td", class_=re.compile('chat-timestamp'))[0].contents[0].extract()
+                chat_message = line.find_all("td", class_=re.compile('chat-message'))[0].contents[0].extract()
+
+                chat_log.append({"user": chat_user, "type":chat_type, "timestamp": chat_timestamp, "message":chat_message})
+
+            recentGames.append({"gameType": gameType, "gameLength": gameLength, "outcome": outcome, "chatLog": chat_log})
 
         # create case
         case = {"caseNum": caseNum, "reports": reports, "games": games, "decision": decision, "agreement": agreement, "punishment": punishment, "recentGames": recentGames}
@@ -114,7 +134,7 @@ for file in files_list:
         gc.collect()
 
 # save data
-with open('./json/data.json', 'w') as outfile:
+with open('./json/data-10.json', 'w') as outfile:
     json.dump(data, outfile)
 
 print 'Processed ' + str(num_files) + ' total cases.'
