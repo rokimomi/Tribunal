@@ -17,10 +17,20 @@ from pprint import pprint
 
 # what's the message rate of the reported player compared to the rest of the game?
 
+# average length of games?
+
+# average games of times below 21 minutes (20 mins is minimum for surrendering, allow one minute for surrendering)
+
+# how many dominion games are in this dataset?
+
+# are the dominion versions of the above different at all?
+
+# what are the possible decisions/agreements/punishments, how often do they show up
+
 ####
 
 
-json_data = open('./json/data.json')
+json_data = open('./json/data-10.json')
 
 data = json.load(json_data)
 

@@ -106,7 +106,32 @@ for file in files_list:
 
                 chat_log.append({"user": chat_user, "type":chat_type, "timestamp": chat_timestamp, "message":chat_message})
 
-            recentGames.append({"gameType": gameType, "gameLength": gameLength, "outcome": outcome, "chatLog": chat_log})
+            # todo player stats, refer to structure comments below on how to name things
+            player_list = []
+
+            player_container = game.find_all("div", class_=re.compile('players-container'))[0].extract()
+            players = player_container.find_all("tr", class_=re.compile('reported-player|ally'))
+
+            for p in players:
+
+                player_level = p.find_all("td", class_=re.compile('player-level'))[0].contents[0].extract()
+                # todo champion and summoner spells are referenced by image only on a tribunal case (image grabs a
+                # todo portion of a tileset
+                #player_champion = p.find_all("td", class_=re.compile('player-champion'))[0].contents[0].extract()
+                #player_summoners = p.find_all("td", class_=re.compile('player-summoner-spells'))[0].contents[0].extract()
+                player_kda = p.find_all("td", class_=re.compile('player-kda'))[0].contents[0].extract()
+
+                # todo gold and cs dont exist in dominion, so this script doesnt grab dominion matches
+                player_gold = p.find_all("td", class_=re.compile('player-gold'))[0].contents[0].extract()
+                player_cs = p.find_all("td", class_=re.compile('player-creep-score'))[0].contents[0].extract()
+
+                player_type = 'ally'
+                if 'reported-player' in p.get('class'):
+                    player_type = 'reported-player'
+
+                #player_list.append({"level":player_level, "kda": player_kda, "gold": player_gold, "creepScore": player_cs})
+
+            recentGames.append({"gameType": gameType, "gameLength": gameLength, "outcome": outcome, "chatLog": chat_log, "players": player_list})
 
         # create case
         case = {"caseNum": caseNum, "reports": reports, "games": games, "decision": decision, "agreement": agreement, "punishment": punishment, "recentGames": recentGames}
@@ -140,6 +165,8 @@ with open('./json/data-10.json', 'w') as outfile:
 print 'Processed ' + str(num_files) + ' total cases.'
 print str(num_files_thrown) + ' cases thrown out ('+ str((num_files_thrown/float(num_files)*100)) +'%)'
 print str(num_files - num_files_thrown) + ' remaining (' + str(((num_files-num_files_thrown)/float(num_files)*100)) + '%)'
+
+# todo update these comments on what the structure of the json output looks like
 
 """
 http://www.jsoneditoronline.org/
