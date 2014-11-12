@@ -1,14 +1,14 @@
 __author__ = 'amine'
 
 import json
+import time
+import datetime
 import math
 from pprint import pprint
 
 # basic stats questions, answer by combing through json
 
 ###
-
-# average length of games?
 
 # what's the kda of reported players?
 
@@ -24,17 +24,19 @@ from pprint import pprint
 
 ####
 
-# todo what about hours encoding
-def time_to_seconds(time):
-    hms = time.split(':')
+def time_to_seconds(hms):
 
-    if(len(hms) == 3):
-        print 'HOURS'
-    elif(len(hms) == 2):
-        print 'ONLY MINS'
+    if len(hms.split(':')) == 2:
+        hms = '00:' + hms
+
+    x = time.strptime(hms,'%H:%M:%S')
+    return int(datetime.timedelta(hours=x.tm_hour,minutes=x.tm_min,seconds=x.tm_sec).total_seconds())
 
 def seconds_to_time(seconds):
-    print 'HERE YA GO'
+    if(seconds < 3600):
+        return time.strftime('%M:%S', time.gmtime(seconds))
+    return time.strftime('%H:%M:%S', time.gmtime(seconds))
+
 
 def percent(numerator, denominator):
     return "%.4f" % (numerator / float(denominator) * 100)
@@ -47,8 +49,6 @@ def summary(tribunal_dict):
 json_data = open('./json/data-10.json')
 
 data = json.load(json_data)
-
-#pprint(data) # pretty print??
 
 total = len(data["tribunal"])
 
@@ -88,13 +88,13 @@ for case in data["tribunal"]:
         elif game["outcome"] == "Loss":
             lossCount += 1
 
-        total_time = time_to_seconds(game["gameLength"])
+        total_time += time_to_seconds(game["gameLength"])
 
 total_games = winCount+lossCount
 
-print str(total) + 'tribunal cases total'
-print str(total_games) + " games total \n"
-#todo print 'Average game time' + str((total_time / float(total_games)))
+print str(total) + ' tribunal cases total'
+print str(total_games) + ' games total \n'
+print 'Average game time: ' + seconds_to_time((total_time / (total_games)))
 
 print '\nDecisions Summary --'
 summary(decisionCounts)
@@ -108,5 +108,3 @@ summary(punishmentCounts)
 print "\n\nWin rate of reported players: " + str(winCount) + "/" + str(winCount + lossCount) + " (" + (percent(winCount, lossCount + winCount)) + "%)"
 
 json_data.close()
-
-time_to_seconds("22:01:33")
