@@ -29,8 +29,8 @@ class Render(QWebPage, QApplication):
 
 startTime = datetime.now()
 
-num_concurrent = 1 # number of concurrently running scripts
-offset = 0 # how much to offset the scripts by when running concurrent scrapes
+num_concurrent = 0 # number of concurrently running scripts
+offset = 1 # how much to offset the scripts by when running concurrent scrapes
 
 
 startingCase = 6030454 - offset

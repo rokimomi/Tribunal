@@ -16,32 +16,24 @@ all_objects = muppy.get_objects()
 sum1 = summary.summarize(all_objects)
 summary.print_(sum1)
 
-# 6030355 SHOWS A "DID NOT LOAD CORRECTLY" MESSAGE FOR GAMES 2 and 3
-
 data = {"tribunal":[]}
 
 ##
 
-files_list = glob.glob('./cases-10/*.html')
+files_list = glob.glob('./cases/*.html')
 
 num_files = len(files_list)
 current_file_num = 0
 num_files_thrown = 0
 
-
-# !!! DELETE LATER
-#num_files = 500
-
-
 for file in files_list:
 
-    #if current_file_num == num_files:
-    #    break
-
-    if current_file_num % 1000 == 0:
+    if current_file_num % 10 == 0:
         all_objects = muppy.get_objects()
         sum1 = summary.summarize(all_objects)
         summary.print_(sum1)
+
+    if current_file_num == 50: break
 
     current_file_num += 1
 
@@ -83,10 +75,13 @@ for file in files_list:
             gameLength = game.find_all("p", id=re.compile('stat-length-fill'))[0].contents[0].extract()
             outcome = game.find_all("p", id=re.compile('stat-outcome-fill'))[0].contents[0].extract()
 
-            # report comments
+            # todo report comments
             # have only ever seen one comment here, run some kind of test to find a page with multiple reports and multiple comments
 
             # chat
+            # instead of saving each line as it's own dictionary element, concatenate the chat lines together and insert
+            # as one object to save on processing memory needed
+
             chat_log = []
 
             chat = game.find_all("tr", class_=re.compile('alliesFilter|enemiesFilter'))
@@ -104,9 +99,18 @@ for file in files_list:
                 chat_timestamp = line.find_all("td", class_=re.compile('chat-timestamp'))[0].contents[0].extract()
                 chat_message = line.find_all("td", class_=re.compile('chat-message'))[0].contents[0].extract()
 
-                chat_log.append({"user": chat_user, "type":chat_type, "timestamp": chat_timestamp, "message":chat_message})
+                chat_log.append({"user": chat_user, "type":chat_type, "timestamp": chat_timestamp, "message": chat_message})
 
-            # todo player stats, refer to structure comments below on how to name things
+            full_chat = ''
+
+            for c in chat_log:
+                full_chat = full_chat + c['user'] + ';@;' + c['type'] + ';@;' + c['timestamp'] + ';@;' + c['message'] + ';@@@;'
+
+            full_chat = full_chat[:-5]
+
+            chat_log = []
+
+            # player stats
             player_list = []
 
             player_container = game.find_all("div", class_=re.compile('players-container'))[0].extract()
@@ -129,9 +133,9 @@ for file in files_list:
                 if 'reported-player' in p.get('class'):
                     player_type = 'reported-player'
 
-                #player_list.append({"level":player_level, "kda": player_kda, "gold": player_gold, "creepScore": player_cs})
+                player_list.append({"level":player_level, "kda": player_kda, "gold": player_gold, "creepScore": player_cs})
 
-            recentGames.append({"gameType": gameType, "gameLength": gameLength, "outcome": outcome, "chatLog": chat_log, "players": player_list})
+            recentGames.append({"gameType": gameType, "gameLength": gameLength, "outcome": outcome, "chatLog": full_chat, "players": player_list})
 
         # create case
         case = {"caseNum": caseNum, "reports": reports, "games": games, "decision": decision, "agreement": agreement, "punishment": punishment, "recentGames": recentGames}
@@ -139,13 +143,10 @@ for file in files_list:
         # add this case to larger json
         data["tribunal"].append(case)
 
+        # free up some memory
         soup.decompose()
-
         gc.collect()
-
         html.close()
-
-
 
     except IndexError, e:
         print "IndexError: case " + caseNum + ". Throwing case out..."
@@ -159,7 +160,7 @@ for file in files_list:
         gc.collect()
 
 # save data
-with open('./json/data-10.json', 'w') as outfile:
+with open('./json/data.json', 'w') as outfile:
     json.dump(data, outfile)
 
 print 'Processed ' + str(num_files) + ' total cases.'
