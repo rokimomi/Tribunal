@@ -153,11 +153,13 @@ for file in files_list:
         num_files_thrown += 1
         soup.decompose()
         gc.collect()
+        html.close()
     except UnicodeDecodeError, e:
         print "UnicodeDecodeError: case " + caseNum + ". Throwing case out..."
         num_files_thrown += 1
         soup.decompose()
         gc.collect()
+        html.close()
 
 # save data
 with open('./json/data.json', 'w') as outfile:

@@ -24,13 +24,9 @@ from pprint import pprint
 
 ####
 
-def time_to_seconds(hms):
-
-    if len(hms.split(':')) == 2:
-        hms = '00:' + hms
-
-    x = time.strptime(hms,'%H:%M:%S')
-    return int(datetime.timedelta(hours=x.tm_hour,minutes=x.tm_min,seconds=x.tm_sec).total_seconds())
+def time_to_seconds(t):
+    hms = t.split(':')
+    return (int(hms[0]) * 60) + int(hms[1])
 
 def seconds_to_time(seconds):
     if(seconds < 3600):
@@ -46,7 +42,7 @@ def summary(tribunal_dict):
         count = tribunal_dict[d]
         print d + ': ' + str(count) + '/' + str(total) + ' (' + (percent(count,total)) + '%)'
 
-json_data = open('./json/data-10.json')
+json_data = open('./json/data.json')
 
 data = json.load(json_data)
 
