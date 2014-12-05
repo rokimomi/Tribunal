@@ -52,6 +52,7 @@ winCount = 0
 lossCount = 0
 
 total_time = 0;
+time_sub_20 = 0;
 
 decisionCounts = {}
 agreementCounts = {}
@@ -78,19 +79,43 @@ for case in data["tribunal"]:
     else:
         punishmentCounts[punishment] += 1
 
+    reported_msg_count = 0
+    ally_msg_count = 0
+
     for game in case["recentGames"]:
         if game["outcome"] == "Win":
             winCount += 1
         elif game["outcome"] == "Loss":
             lossCount += 1
 
-        total_time += time_to_seconds(game["gameLength"])
+        game_time = time_to_seconds(game["gameLength"])
+
+        total_time += game_time
+
+        if game_time < time_to_seconds("20:00"):
+            time_sub_20 += 1
+
+        # chat things
+
+        if not len(game["chatLog"]) > 0:
+            continue
+
+        line = game["chatLog"].split(';@@@;')
+
+        for l in line:
+            player_type = l.split(";@;")[1]
+            if player_type == "ally":
+                ally_msg_count += 1
+            elif player_type == "reported-player":
+                reported_msg_count += 1
 
 total_games = winCount+lossCount
 
 print str(total) + ' tribunal cases total'
 print str(total_games) + ' games total \n'
 print 'Average game time: ' + seconds_to_time((total_time / (total_games)))
+
+print 'Games ending before 20 minutes: ' + str(time_sub_20)
 
 print '\nDecisions Summary --'
 summary(decisionCounts)
@@ -101,6 +126,8 @@ summary(agreementCounts)
 print '\nPunishments Summary --'
 summary(punishmentCounts)
 
-print "\n\nWin rate of reported players: " + str(winCount) + "/" + str(winCount + lossCount) + " (" + (percent(winCount, lossCount + winCount)) + "%)"
+print "\nWin rate of reported players: " + str(winCount) + "/" + str(winCount + lossCount) + " (" + (percent(winCount, lossCount + winCount)) + "%)"
+
+print "\nReported player chat percentage: (" + str(reported_msg_count) + "/" + str(reported_msg_count+ally_msg_count) + ") (" + percent(reported_msg_count, reported_msg_count + ally_msg_count) + "%)"
 
 json_data.close()
